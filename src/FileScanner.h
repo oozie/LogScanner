@@ -30,7 +30,9 @@ public:
 private:
     std::string filename_;
     char *dirname_;
-
+    int filewatch_qid_ = -1;
+    int file_ret_ = -1;
+;
     bool shutdown_ = false;
     void handleCreateEvent();
     void reopenStream();

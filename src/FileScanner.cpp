@@ -18,20 +18,28 @@ FileScanner::FileScanner(std::string filename) :
 }
 
 void FileScanner::handleCreateEvent() {
-    char buffer[IEVENT_BUF_LEN];
+    char event_buffer[IEVENT_BUF_LEN];
 
-    int watch_queue_id = inotify_init();
+    int dirwatch_qid = inotify_init();
 
-    int ret = inotify_add_watch(watch_queue_id, dirname_, IN_CREATE);
+    int ret = inotify_add_watch(dirwatch_qid, dirname_, IN_CREATE);
     if (ret) {
         // TODO: Handle errors.
     }
-    std::cerr << "watching " << dirname_ << std::endl;
+
+    filewatch_qid_ = inotify_init();
+    file_ret_ = inotify_add_watch(filewatch_qid_, filename_.c_str(), IN_MODIFY);
+    if (file_ret_) {
+        // TODO: Handle errors.
+    }
+    std::cerr << "watching dir" << dirname_ << std::endl;
     while(!shutdown_) {
-        if (read(watch_queue_id, buffer, IEVENT_BUF_LEN)) {
+        if (read(dirwatch_qid, event_buffer, IEVENT_BUF_LEN)) {
             reopenStream();
-            // TODO: only reopen if it's the monitored filename
             std::cerr << filename_ << " recreated" << std::endl;
+            inotify_rm_watch(filewatch_qid_, file_ret_);
+            file_ret_ = inotify_add_watch(filewatch_qid_, filename_.c_str(), IN_MODIFY);
+            // TODO: only reopen if it's the monitored filename
         }
     }
     std::cout << "done watching" << std::endl;
@@ -39,10 +47,16 @@ void FileScanner::handleCreateEvent() {
 
 void FileScanner::scan() {
     reopenStreamTask_ = std::thread(&FileScanner::handleCreateEvent, this);
+    char event_buffer[IEVENT_BUF_LEN];
+
     // TODO: Scan and populate a rate counter.
     std::cerr << "scanning " << filename_ << std::endl;
     // TODO: tailf the input stream
-    while(true) { };
+    std::cerr << "watching " << filename_ << std::endl;
+    while(!shutdown_) {
+        read(filewatch_qid_, event_buffer, IEVENT_BUF_LEN);
+        std::cerr << "file modified" << std::endl;
+    };
     reopenStreamTask_.join();
 }
 
@@ -50,6 +64,6 @@ void FileScanner::reopenStream() {
     if (logfile_.is_open()) {
         logfile_.close();
     }
-    logfile_.open(filename_);
+    logfile_.open(filename_.c_str(), std::ios::in);
     logfile_.seekg(logfile_.end);
 }
