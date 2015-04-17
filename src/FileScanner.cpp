@@ -20,21 +20,9 @@ FileScanner::FileScanner(std::string filename) :
 void FileScanner::handleCreateEvent() {
     char event_buffer[IEVENT_BUF_LEN];
 
-    int dirwatch_qid = inotify_init();
-
-    int ret = inotify_add_watch(dirwatch_qid, dirname_, IN_CREATE);
-    if (ret) {
-        // TODO: Handle errors.
-    }
-
-    filewatch_qid_ = inotify_init();
-    file_ret_ = inotify_add_watch(filewatch_qid_, filename_.c_str(), IN_MODIFY);
-    if (file_ret_) {
-        // TODO: Handle errors.
-    }
-    std::cerr << "watching dir" << dirname_ << std::endl;
+    std::cerr << "watching dir " << dirname_ << std::endl;
     while(!shutdown_) {
-        if (read(dirwatch_qid, event_buffer, IEVENT_BUF_LEN)) {
+        if (read(dirwatch_qid_, event_buffer, IEVENT_BUF_LEN)) {
             reopenStream();
             std::cerr << filename_ << " recreated" << std::endl;
             inotify_rm_watch(filewatch_qid_, file_ret_);
@@ -46,16 +34,33 @@ void FileScanner::handleCreateEvent() {
 }
 
 void FileScanner::scan() {
-    reopenStreamTask_ = std::thread(&FileScanner::handleCreateEvent, this);
     char event_buffer[IEVENT_BUF_LEN];
+    std::string logline;
+
+    // Allocate watch queues.
+    filewatch_qid_ = inotify_init();
+    dirwatch_qid_ = inotify_init();
+    int dir_ret_ = inotify_add_watch(dirwatch_qid_, dirname_, IN_CREATE);
+    if (dir_ret_) {
+        // TODO: Handle errors.
+    }
+    file_ret_ = inotify_add_watch(filewatch_qid_, filename_.c_str(), IN_MODIFY);
+    if (file_ret_) {
+        // TODO: Handle errors.
+    }
+    // Open the file.
+    reopenStream();
+    reopenStreamTask_ = std::thread(&FileScanner::handleCreateEvent, this);
 
     // TODO: Scan and populate a rate counter.
     std::cerr << "scanning " << filename_ << std::endl;
-    // TODO: tailf the input stream
-    std::cerr << "watching " << filename_ << std::endl;
     while(!shutdown_) {
+        // TODO: Handle truncation.
         read(filewatch_qid_, event_buffer, IEVENT_BUF_LEN);
-        std::cerr << "file modified" << std::endl;
+        int tellg_before = logfile_.tellg();
+        getline(logfile_, logline);
+        std::cerr << "CUR: " << tellg_before << " "
+                  << "LOGLINE: "<<  logline << std::endl;
     };
     reopenStreamTask_.join();
 }
@@ -65,5 +70,5 @@ void FileScanner::reopenStream() {
         logfile_.close();
     }
     logfile_.open(filename_.c_str(), std::ios::in);
-    logfile_.seekg(logfile_.end);
+    logfile_.seekg(0, logfile_.end);
 }
