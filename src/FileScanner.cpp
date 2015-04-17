@@ -54,13 +54,18 @@ void FileScanner::scan() {
 
     // TODO: Scan and populate a rate counter.
     std::cerr << "scanning " << filename_ << std::endl;
+    int curpos = -1;
     while(!shutdown_) {
-        // TODO: Handle truncation.
         read(filewatch_qid_, event_buffer, IEVENT_BUF_LEN);
-        int tellg_before = logfile_.tellg();
         getline(logfile_, logline);
-        std::cerr << "CUR: " << tellg_before << " "
-                  << "LOGLINE: "<<  logline << std::endl;
+        curpos = logfile_.tellg();
+        if (curpos == -1) { // File truncated.
+            // TODO: Don't drop first line after truncation.
+            reopenStream();
+        } else {
+            std::cerr << "CUR: " << curpos << " "
+                      << "LOGLINE: "<<  logline << std::endl;
+        }
     };
     reopenStreamTask_.join();
 }
