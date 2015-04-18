@@ -20,11 +20,11 @@ FileScanner::FileScanner(std::string filename) :
 void FileScanner::handleCreateEvent() {
     char event_buffer[IEVENT_BUF_LEN];
 
-    std::cerr << "watching dir " << dirname_ << std::endl;
+    LOG(INFO) << "watching dir " << dirname_;
     while(!shutdown_) {
         if (read(dirwatch_qid_, event_buffer, IEVENT_BUF_LEN)) {
             reopenStream();
-            std::cerr << filename_ << " recreated" << std::endl;
+            LOG(INFO) << filename_ << " recreated";
             inotify_rm_watch(filewatch_qid_, file_ret_);
             file_ret_ = inotify_add_watch(filewatch_qid_, filename_.c_str(), IN_MODIFY);
             // TODO: only reopen if it's the monitored filename
@@ -53,7 +53,7 @@ void FileScanner::scan() {
     reopenStreamTask_ = std::thread(&FileScanner::handleCreateEvent, this);
 
     // TODO: Scan and populate a rate counter.
-    std::cerr << "scanning " << filename_ << std::endl;
+    LOG(INFO) << "scanning " << filename_;
     int curpos = -1;
     while(!shutdown_) {
         read(filewatch_qid_, event_buffer, IEVENT_BUF_LEN);
@@ -63,8 +63,8 @@ void FileScanner::scan() {
             // TODO: Don't drop first line after truncation.
             reopenStream();
         } else {
-            std::cerr << "CUR: " << curpos << " "
-                      << "LOGLINE: "<<  logline << std::endl;
+            LOG(INFO) << "CUR: " << curpos << " "
+                      << "LOGLINE: "<<  logline;
         }
     };
     reopenStreamTask_.join();

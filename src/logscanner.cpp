@@ -7,8 +7,9 @@ using namespace std;
 
 int main(int argc, char **argv) {
 
-    // TODO: Set up logging.
-    cerr << "LogScanner prototype" << endl;
+    google::InitGoogleLogging(argv[0]);
+    FLAGS_logtostderr = 1;
+    LOG(INFO) << "LogScanner prototype";
     // TODO: check if a directory.
     // TODO: Parse args.
     FileScanner linescanner(argv[1]);
