@@ -13,15 +13,23 @@ set (CMAKE_CXX_FLAGS "-std=c++11 -pthread")
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 
+# Threads
 find_package (Threads REQUIRED)
 set (LIBS ${LIBS} ${Threads_LIBRARIES})
 
+# glog
 find_package (Glog REQUIRED)
 set (LIBS ${LIBS} ${GLOG_LIBRARIES})
 
-# TODO: Write cmake modules for the following:
+# GFlags
+set (gflags_SHARED    FALSE)
+set (gflags_NOTHREADS FALSE)
+find_package(gflags REQUIRED)
 set (LIBS ${LIBS} gflags)
-set (LIBS ${LIBS} unwind)
+
+# Unwind
+find_package (Unwind REQUIRED)
+set (LIBS ${LIBS} ${UNWIND_LIBRARIES} unwind)
 
 add_library (filescanner STATIC src/FileScanner.cpp src/FileScanner.h)
 add_executable (logscanner src/logscanner.cpp)

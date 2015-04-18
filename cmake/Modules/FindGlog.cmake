@@ -8,11 +8,10 @@
 #  GLOG_FOUND
 #  GLOG_INCLUDE_DIRS
 #  GLOG_LIBRARIES
-#  GLOG_LIBRARYRARY_DIRS
 
 include(FindPackageHandleStandardArgs)
 
-set(GLOG_ROOT_DIR "" CACHE PATH "Folder contains Google glog")
+set(GLOG_ROOT_DIR "" CACHE PATH "Folder containing Google glog")
 
 if(WIN32)
     find_path(GLOG_INCLUDE_DIR glog/logging.h
