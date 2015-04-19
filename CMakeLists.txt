@@ -31,6 +31,10 @@ set (LIBS ${LIBS} gflags)
 find_package (Unwind REQUIRED)
 set (LIBS ${LIBS} ${UNWIND_LIBRARIES} unwind)
 
+# JSONCpp
+find_package (JsonCpp REQUIRED)
+set (LIBS ${LIBS} ${JSONCPP_LIBRARIES})
+
 add_library (filescanner STATIC src/FileScanner.cpp src/FileScanner.h)
 add_executable (logscanner src/logscanner.cpp)
 

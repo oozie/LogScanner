@@ -56,6 +56,7 @@ void FileScanner::scan() {
     LOG(INFO) << "scanning " << filename_;
     int curpos = -1;
     while(!shutdown_) {
+        // TODO: read multiple lines per update.
         read(filewatch_qid_, event_buffer, IEVENT_BUF_LEN);
         getline(logfile_, logline);
         curpos = logfile_.tellg();

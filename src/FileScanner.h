@@ -19,7 +19,7 @@
 #include <iostream>
 #include <fstream>
 #include <glog/logging.h>
-
+#include <json/json.h>
 // TODO: inherit from a scanner interface.
 class FileScanner {
 
