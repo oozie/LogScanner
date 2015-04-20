@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 
+#include <sys/stat.h>
 #include <gflags/gflags.h>
 
 #include "FileScanner.h"
@@ -26,8 +27,15 @@ void parseJsonConfig(string config_file) {
             FLAGS_logfile = root.get("logfile", "").asString();
         }
     } else {
-        LOG(FATAL) << "Error reading config " << reader.getFormattedErrorMessages();
+        LOG(FATAL) << "Error reading config\n" << reader.getFormattedErrorMessages();
     }
+    // Validate that the file pointed to for a scan is not a directory.
+    struct stat sb;
+    if (stat(FLAGS_logfile.c_str(), &sb) == 0) {
+        if (S_ISDIR(sb.st_mode)) {
+            LOG(FATAL) << FLAGS_logfile << " is a directory";
+        }
+    } // It's okay if the file does not exist yet; we can wait for it.
 }
 
 int main(int argc, char **argv) {
@@ -59,7 +67,6 @@ int main(int argc, char **argv) {
         exit(1);
     }
 
-    // TODO: check if a directory.
     FileScanner linescanner(FLAGS_logfile);
     linescanner.scan();
     return 0;
