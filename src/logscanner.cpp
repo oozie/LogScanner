@@ -6,7 +6,6 @@
 
 #include "FileScanner.h"
 
-
 DEFINE_string(config, "", "JSON configuration of the logscanner");
 DEFINE_string(logfile, "", "Config override for scanned log file");
 
@@ -60,13 +59,13 @@ int main(int argc, char **argv) {
     google::SetUsageMessage(usage);
     google::ParseCommandLineFlags(&argc, &argv, true);
 
-    parseJsonConfig(FLAGS_config);
-
     if (FLAGS_config.empty()) {
         cerr << google::ProgramUsage() << endl;
         exit(1);
     }
 
+    parseJsonConfig(FLAGS_config);
+    // TODO: Add a command scanner
     FileScanner linescanner(FLAGS_logfile);
     linescanner.scan();
     return 0;

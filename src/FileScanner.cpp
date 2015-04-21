@@ -33,6 +33,17 @@ void FileScanner::handleCreateEvent() {
     std::cout << "done watching" << std::endl;
 }
 
+int add_watch_handle_errors(int watch_qid, std::string fsobj, int event_mask, bool is_directory) {
+    int ret = inotify_add_watch(watch_qid, fsobj.c_str(), event_mask);
+    if (ret == -1) {
+        // It's okay if we're still waiting for a file, die in any other case.
+        if (!(errno == ENOENT && !is_directory)) {
+            LOG(FATAL) << strerror(errno) << ": " << fsobj;
+        }
+    }
+    return ret;
+}
+
 void FileScanner::scan() {
     char event_buffer[IEVENT_BUF_LEN];
     std::string logline;
@@ -40,14 +51,10 @@ void FileScanner::scan() {
     // Allocate watch queues.
     filewatch_qid_ = inotify_init();
     dirwatch_qid_ = inotify_init();
-    int dir_ret_ = inotify_add_watch(dirwatch_qid_, dirname_, IN_CREATE);
-    if (dir_ret_) {
-        // TODO: Handle errors.
-    }
-    file_ret_ = inotify_add_watch(filewatch_qid_, filename_.c_str(), IN_MODIFY);
-    if (file_ret_) {
-        // TODO: Handle errors.
-    }
+
+    add_watch_handle_errors(dirwatch_qid_, dirname_, IN_CREATE, true);
+    file_ret_ = add_watch_handle_errors(filewatch_qid_, filename_, IN_MODIFY, false);
+
     // Open the file.
     reopenStream();
     reopenStreamTask_ = std::thread(&FileScanner::handleCreateEvent, this);

@@ -20,6 +20,7 @@
 #include <fstream>
 #include <glog/logging.h>
 #include <json/json.h>
+#include <errno.h>
 // TODO: inherit from a scanner interface.
 class FileScanner {
 
@@ -34,7 +35,7 @@ private:
     int filewatch_qid_ = -1;
     int dirwatch_qid_ = -1;
     int file_ret_ = -1;
-;
+
     bool shutdown_ = false;
     void handleCreateEvent();
     void reopenStream();
