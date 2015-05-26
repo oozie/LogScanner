@@ -21,14 +21,26 @@
 #include <glog/logging.h>
 #include <json/json.h>
 #include <errno.h>
+#include <regex>
 // TODO: inherit from a scanner interface.
+
+struct MetricCounter {
+// TODO: implement metric counter.
+};
+
+struct LogPattern {
+    std::string name;
+    std::regex regex;
+    MetricCounter counter;
+};
+
 class FileScanner {
 
 public:
     FileScanner(std::string filename);
 
     void scan();
-
+    void setPatterns(std::vector<LogPattern>);
 private:
     std::string filename_;
     char *dirname_;
@@ -42,6 +54,8 @@ private:
     std::thread reopenStreamTask_;
 
     std::ifstream logfile_;
+
+    std::vector<LogPattern> patterns_;
 };
 
 #endif /* FILESCANNER_H_ */

@@ -85,3 +85,7 @@ void FileScanner::reopenStream() {
     logfile_.open(filename_.c_str(), std::ios::in);
     logfile_.seekg(0, logfile_.end);
 }
+
+void FileScanner::setPatterns(std::vector<LogPattern> patterns) {
+    patterns_ = patterns;
+}

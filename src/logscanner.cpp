@@ -11,7 +11,8 @@ DEFINE_string(logfile, "", "Config override for scanned log file");
 
 using namespace std;
 
-void parseJsonConfig(string config_file) {
+std::vector<LogPattern> parseJsonConfig(string config_file) {
+    std::vector<LogPattern> log_patterns;
     std::ifstream input_stream;
     if (config_file == "-") {
         // TODO: allow for reading config from stdin
@@ -35,6 +36,30 @@ void parseJsonConfig(string config_file) {
             LOG(FATAL) << FLAGS_logfile << " is a directory";
         }
     } // It's okay if the file does not exist yet; we can wait for it.
+
+    // TODO: make pattern overrides through a gflag.
+    if (!root.isMember("patterns")) {
+        LOG(FATAL) << "config must define patterns to match";
+    }
+    auto patterns = root.get("patterns", "");
+    auto pattern_names = patterns.getMemberNames();
+    for (std::string pattern_name : pattern_names) {
+        Json::Value pattern = patterns.get(pattern_name, "");
+        string regex_str = pattern.get("regex", "").asString();
+        regex pattern_regex{regex_str};
+        cout << pattern_name << " " << regex_str << std::endl;
+
+        // TODO: Set through ctor.
+        MetricCounter counter;
+
+        LogPattern log_pattern;
+        log_pattern.name = pattern_name;
+        log_pattern.regex = pattern_regex;
+        log_pattern.counter = counter;
+        log_patterns.push_back(log_pattern);
+    }
+    LOG(INFO) << "Read " << log_patterns.size() << " patterns from config.";
+    return log_patterns;
 }
 
 int main(int argc, char **argv) {
@@ -64,9 +89,10 @@ int main(int argc, char **argv) {
         exit(1);
     }
 
-    parseJsonConfig(FLAGS_config);
+    vector<LogPattern> patterns = parseJsonConfig(FLAGS_config);
     // TODO: Add a command scanner
     FileScanner linescanner(FLAGS_logfile);
+    linescanner.setPatterns(patterns);
     linescanner.scan();
     return 0;
 }
