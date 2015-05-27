@@ -47,15 +47,10 @@ std::vector<LogPattern> parseJsonConfig(string config_file) {
         Json::Value pattern = patterns.get(pattern_name, "");
         string regex_str = pattern.get("regex", "").asString();
         regex pattern_regex{regex_str};
-        cout << pattern_name << " " << regex_str << std::endl;
 
-        // TODO: Set through ctor.
         MetricCounter counter;
 
-        LogPattern log_pattern;
-        log_pattern.name = pattern_name;
-        log_pattern.regex = pattern_regex;
-        log_pattern.counter = counter;
+        LogPattern log_pattern(pattern_name, pattern_regex, counter);
         log_patterns.push_back(log_pattern);
     }
     LOG(INFO) << "Read " << log_patterns.size() << " patterns from config.";

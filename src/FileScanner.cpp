@@ -30,7 +30,6 @@ void FileScanner::handleCreateEvent() {
             // TODO: only reopen if it's the monitored filename
         }
     }
-    std::cout << "done watching" << std::endl;
 }
 
 int add_watch_handle_errors(int watch_qid, std::string fsobj, int event_mask, bool is_directory) {

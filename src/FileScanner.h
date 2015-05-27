@@ -22,13 +22,16 @@
 #include <json/json.h>
 #include <errno.h>
 #include <regex>
+
+#include "MetricCounter.h"
 // TODO: inherit from a scanner interface.
 
-struct MetricCounter {
-// TODO: implement metric counter.
-};
-
 struct LogPattern {
+    LogPattern(std::string name, std::regex regex, MetricCounter counter)
+        :
+        name(name),
+        regex(regex),
+        counter(counter) { };
     std::string name;
     std::regex regex;
     MetricCounter counter;
